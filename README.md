@@ -23,3 +23,28 @@ If you’re browsing this repo: everything here is meant to be safe to publish a
   - `HelmRepository`
   - `HelmRelease`
   - app-local `kustomization.yaml`
+
+## Renovate
+
+This repo is Renovate-managed to keep Helm charts and container images current.
+
+Typical update targets:
+- HelmRelease.spec.chart.spec.version (chart versions)
+- container image tags/digests in Helm values
+- GitHub Actions (if enabled)
+
+See renovate.json in the repository root.
+
+## Conventions
+
+Prefer pinning chart versions and image tags (or digests) for reproducibility.
+
+Avoid committing secrets. If a component needs credentials, reference a Kubernetes Secret that is created from the private repo.
+
+Keep namespaces explicit and app-scoped.
+
+Set resource requests/limits for anything that can get greedy (Jupyter, ML services, etc.).
+
+## License
+
+MIT
