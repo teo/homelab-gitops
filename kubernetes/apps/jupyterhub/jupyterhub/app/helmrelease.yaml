@@ -1,0 +1,69 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: jupyterhub
+  namespace: jupyterhub
+  annotations:
+    fluxcd.io/redeploy: "2026-02-08T18:31:00"
+spec:
+  interval: 12h
+  url: https://hub.jupyter.org/helm-chart/
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jupyterhub
+  namespace: jupyterhub
+spec:
+  interval: 3m
+
+  chart:
+    spec:
+      chart: jupyterhub
+      version: 4.3.2
+      sourceRef:
+        kind: HelmRepository
+        name: jupyterhub
+        namespace: jupyterhub
+      interval: 12h
+
+  # Private repo can provide cluster-specific config & secrets.
+  valuesFrom:
+    - kind: ConfigMap
+      name: jupyterhub-values
+      optional: true
+    - kind: Secret
+      name: jupyterhub-secrets
+      optional: true
+
+  values:
+    hub:
+      db:
+        pvc:
+          storageClassName: zfs-configuration
+
+    proxy:
+      service:
+        type: ClusterIP
+
+    ingress:
+      enabled: false
+      
+    singleuser:
+      cpu:
+        guarantee: 1
+        limit: 4
+      memory:
+        guarantee: 4G
+        limit: 16G
+      networkPolicy:
+        enabled: true
+      defaultUrl: /lab
+      storage:
+        type: static
+        capacity: 1Gi
+        static:
+          pvcName: jupyterhub-users-pvc
