@@ -6,7 +6,7 @@ metadata:
   name: jupyterhub
   namespace: jupyterhub
   annotations:
-    fluxcd.io/redeploy: "2026-02-08T18:31:00"
+    fluxcd.io/redeploy: "2026-02-09T21:50:00"
 spec:
   interval: 12h
   url: https://hub.jupyter.org/helm-chart/
@@ -51,7 +51,12 @@ spec:
 
     ingress:
       enabled: false
-      
+
+    cull:
+      enabled: true
+      timeout: 3600   # 1h idle
+      every: 600      # check every 10 min      
+
     singleuser:
       cpu:
         guarantee: 1
@@ -59,11 +64,32 @@ spec:
       memory:
         guarantee: 4G
         limit: 16G
+      
       networkPolicy:
         enabled: true
+      
       defaultUrl: /lab
+      
       storage:
         type: static
         capacity: 1Gi
         static:
           pvcName: jupyterhub-users-pvc
+      
+      image:
+        name: quay.io/jupyter/scipy-notebook
+        tag: python-3.13
+      cmd: jupyter-labhub
+      
+      profileList:
+        - display_name: "CPU scipy-notebook"
+          default: true
+          description: "General data science notebook server (no GPU)."
+        - display_name: "GPU pytorch-notebook (1 slice)"
+          description: "CUDA + PyTorch, requests 1 GPU slot."
+          kubespawner_override:
+            extra_resource_limits:
+              nvidia.com/gpu: "1"
+            extra_pod_config:
+              runtimeClassName: nvidia
+            image: quay.io/jupyter/pytorch-notebook:cuda12-python-3.13
