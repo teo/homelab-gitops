@@ -59,11 +59,11 @@ spec:
 
     singleuser:
       cpu:
-        guarantee: 1
-        limit: 4
+        guarantee: 2
+        limit: 8
       memory:
-        guarantee: 4G
-        limit: 16G
+        guarantee: 8G
+        limit: 32G
       
       networkPolicy:
         enabled: true
@@ -72,7 +72,7 @@ spec:
       
       storage:
         type: static
-        capacity: 1Gi
+        capacity: 50Gi
         static:
           pvcName: jupyterhub-users-pvc
       
@@ -93,3 +93,7 @@ spec:
             extra_pod_config:
               runtimeClassName: nvidia
             image: quay.io/jupyter/pytorch-notebook:cuda12-python-3.13
+            cpu_guarantee: 4
+            cpu_limit: 12
+            mem_guarantee: 16G
+            mem_limit: 48G

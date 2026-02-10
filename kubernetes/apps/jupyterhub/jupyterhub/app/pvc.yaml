@@ -9,6 +9,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 50Gi
   volumeName: jupyterhub-users-pv
   storageClassName: zfs-configuration
