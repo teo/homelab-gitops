@@ -76,6 +76,15 @@ spec:
         static:
           pvcName: jupyterhub-users-pvc
       
+        extraVolumes:
+          - name: dshm
+            emptyDir:
+              medium: Memory
+              sizeLimit: 4Gi
+        extraVolumeMounts:
+          - name: dshm
+            mountPath: /dev/shm
+
       image:
         name: quay.io/jupyter/scipy-notebook
         tag: python-3.13
