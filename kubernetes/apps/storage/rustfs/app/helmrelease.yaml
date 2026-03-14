@@ -1,0 +1,62 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: rustfs
+  namespace: storage
+  annotations:
+    fluxcd.io/redeploy: "2026-02-09T21:50:00"
+spec:
+  interval: 12h
+  url: https://charts.rustfs.com/
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rustfs
+  namespace: storage
+spec:
+  interval: 3m
+
+  chart:
+    spec:
+      chart: rustfs
+      version: 0.0.85
+      sourceRef:
+        kind: HelmRepository
+        name: rustfs
+        namespace: storage
+      interval: 12h
+
+  # Private repo can provide cluster-specific config & secrets.
+  valuesFrom:
+    - kind: ConfigMap
+      name: rustfs-values
+      optional: true
+    - kind: Secret
+      name: rustfs-secrets
+      optional: true
+
+  values:
+    mode:
+      standalone:
+        enabled: true
+        existingClaim:
+          dataClaim: rustfs-data-pvc
+          logsClaim: rustfs-logs-pvc
+      distributed:
+        enabled: false
+
+    ingress:
+      enabled: false
+
+    gatewayApi:
+      enabled: false
+
+    service:
+      type: ClusterIP
+
+    secret:
+      existingSecret: rustfs-keys
