@@ -85,6 +85,9 @@ spec:
           - name: dshm
             mountPath: /dev/shm
 
+      cloudMetadata:
+        blockWithIptables: false
+
       image:
         name: quay.io/jupyter/scipy-notebook
         tag: python-3.13
