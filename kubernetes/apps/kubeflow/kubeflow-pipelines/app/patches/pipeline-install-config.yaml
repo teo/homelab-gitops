@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pipeline-install-config
+  namespace: kubeflow
+data:
+  bucketName: kubeflow-pipelines
+  dbHost: kubeflow-pipelines-db-rw
+  dbPort: "5432"
+  defaultPipelineRoot: s3://kubeflow-pipelines/pipeline-root
+  postgresHost: kubeflow-pipelines-db-rw
+  postgresPort: "5432"

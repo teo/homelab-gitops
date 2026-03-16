@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+        - name: ml-pipeline-api-server
+          env:
+            - name: DBCONFIG_POSTGRESQLCONFIG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: kubeflow-pipelines-postgres-secret
+                  key: username
+            - name: DBCONFIG_POSTGRESQLCONFIG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kubeflow-pipelines-postgres-secret
+                  key: password
+            - name: OBJECTSTORECONFIG_ACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: kubeflow-pipelines-s3-secret
+                  key: S3_ACCESS_KEY
+            - name: OBJECTSTORECONFIG_SECRETACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: kubeflow-pipelines-s3-secret
+                  key: S3_SECRET_KEY

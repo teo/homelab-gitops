@@ -1,0 +1,64 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kubeflow
+resources:
+  - github.com/kubeflow/pipelines/manifests/kustomize/base/crds?ref=2.15.0
+  - github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic-postgresql?ref=2.15.0
+  - github.com/kubeflow/pipelines/manifests/kustomize/base/webhook?ref=2.15.0
+  - github.com/kubeflow/pipelines/manifests/kustomize/env/cert-manager/base-webhook-certs?ref=2.15.0
+  - ./db.yaml
+patches:
+  - path: ./patches/cert-manager-deployment.yaml
+    target:
+      kind: Deployment
+      name: ml-pipeline
+  - path: ./patches/cert-manager-service.json
+    target:
+      kind: Service
+      name: ml-pipeline
+  - path: ./patches/cert-manager-validating-webhook.yaml
+    target:
+      kind: ValidatingWebhookConfiguration
+      name: pipelineversions.pipelines.kubeflow.org
+  - path: ./patches/cert-manager-mutating-webhook.yaml
+    target:
+      kind: MutatingWebhookConfiguration
+      name: pipelineversions.pipelines.kubeflow.org
+  - path: ./patches/cert-manager-role.yaml
+    target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: Role
+      name: ml-pipeline
+  - path: ./patches/minio-service.json
+    target:
+      kind: Service
+      name: minio-service
+  - path: ./patches/metadata-postgres-db-service.json
+    target:
+      kind: Service
+      name: metadata-postgres-db
+patchesStrategicMerge:
+  - ./patches/pipeline-install-config.yaml
+  - ./patches/workflow-controller-configmap.yaml
+  - ./patches/ml-pipeline-deployment.yaml
+  - ./patches/ml-pipeline-ui-deployment.yaml
+  - ./patches/cache-server-deployment.yaml
+  - ./patches/metadata-grpc-deployment.yaml
+  - ./patches/delete-seaweedfs-deployment.yaml
+  - ./patches/delete-seaweedfs-pvc.yaml
+  - ./patches/delete-seaweedfs-networkpolicy.yaml
+  - ./patches/delete-seaweedfs-serviceaccount.yaml
+  - ./patches/delete-seaweedfs-service.yaml
+  - ./patches/delete-seaweedfs-secret.yaml
+  - ./patches/delete-postgres-deployment.yaml
+  - ./patches/delete-postgres-service.yaml
+  - ./patches/delete-postgres-pvc.yaml
+  - ./patches/delete-postgres-secret.yaml
+  - ./patches/delete-postgresql-serviceaccount.yaml
+  - ./patches/delete-postgres-extended-secret.yaml
+  - ./patches/delete-metadata-postgres-deployment.yaml
+  - ./patches/delete-metadata-postgres-pvc.yaml
+  - ./patches/delete-metadata-postgres-secret.yaml

@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/spec",
+    "value": {
+      "type": "ExternalName",
+      "externalName": "rustfs-svc.storage.svc.cluster.local",
+      "ports": [
+        {
+          "name": "http",
+          "port": 9000,
+          "protocol": "TCP"
+        }
+      ]
+    }
+  }
+]

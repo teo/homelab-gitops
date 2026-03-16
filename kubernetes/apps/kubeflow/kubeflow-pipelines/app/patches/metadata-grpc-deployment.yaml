@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metadata-grpc-deployment
+  namespace: kubeflow
+spec:
+  template:
+    spec:
+      containers:
+        - name: container
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: kubeflow-pipelines-postgres-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kubeflow-pipelines-postgres-secret
+                  key: password
+          envFrom:
+            - $patch: replace
+            - configMapRef:
+                name: metadata-postgres-db-parameters
+            - configMapRef:
+                name: metadata-grpc-configmap

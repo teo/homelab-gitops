@@ -1,0 +1,30 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kubeflow-pipelines-db
+  namespace: kubeflow
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1500m
+      memory: 4Gi
+  storage:
+    size: 20Gi
+    storageClass: nvmeof-fast
+  bootstrap:
+    initdb:
+      database: mlpipeline
+      owner: kubeflow-pipelines
+      secret:
+        name: kubeflow-pipelines-postgres-secret
+      postInitSQL:
+        - CREATE DATABASE cachedb OWNER "kubeflow-pipelines";
+        - CREATE DATABASE mlmdpostgres OWNER "kubeflow-pipelines";
+  monitoring:
+    enablePodMonitor: true
