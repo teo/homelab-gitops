@@ -1,0 +1,65 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: apache-airflow
+  namespace: ml
+spec:
+  interval: 12h
+  url: https://airflow.apache.org
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: airflow
+  namespace: ml
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: airflow
+      version: 1.18.0
+      sourceRef:
+        kind: HelmRepository
+        name: apache-airflow
+        namespace: ml
+      interval: 12h
+  valuesFrom:
+    - kind: Secret
+      name: airflow-values
+      valuesKey: values.yaml
+      optional: false
+  values:
+    executor: KubernetesExecutor
+    useStandardNaming: true
+    ingress:
+      enabled: false
+    postgresql:
+      enabled: false
+    redis:
+      enabled: false
+    flower:
+      enabled: false
+    pgbouncer:
+      enabled: false
+    createUserJob:
+      useHelmHooks: false
+      applyCustomEnv: false
+    migrateDatabaseJob:
+      useHelmHooks: false
+      applyCustomEnv: false
+    allowPodLaunching: true
+    logs:
+      persistence:
+        enabled: true
+        existingClaim: airflow-logs-pvc
+    dags:
+      persistence:
+        enabled: false
+      gitSync:
+        enabled: true
+    webserver:
+      service:
+        type: ClusterIP

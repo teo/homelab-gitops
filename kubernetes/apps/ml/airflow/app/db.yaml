@@ -1,0 +1,28 @@
+---
+# CNPG Cluster (instances=1) using the NVMe-oF SC
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: airflow-db
+  namespace: ml
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      cpu: 1500m
+      memory: 4Gi
+  storage:
+    size: 10Gi
+    storageClass: nvmeof-fast
+  bootstrap:
+    initdb:
+      database: airflow
+      owner: airflow
+      secret:
+        name: airflow-postgres-secret
+  monitoring:
+    enablePodMonitor: true
