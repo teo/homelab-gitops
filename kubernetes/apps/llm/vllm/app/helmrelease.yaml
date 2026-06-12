@@ -1,0 +1,193 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: vllm-production-stack
+  namespace: llm
+spec:
+  interval: 12h
+  url: https://vllm-project.github.io/production-stack
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vllm
+  namespace: llm
+spec:
+  interval: 10m
+  timeout: 30m
+
+  chart:
+    spec:
+      chart: vllm-stack
+      version: 0.1.11
+      sourceRef:
+        kind: HelmRepository
+        name: vllm-production-stack
+        namespace: llm
+      interval: 12h
+
+  install:
+    remediation:
+      retries: -1
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: vllm-qwen36-35b-a3b-nvfp4-deployment-vllm
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: vllm-qwen36-35b-a3b-nvfp4-deployment-vllm
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: vllm
+                        env:
+                          - name: HF_HOME
+                            value: /data/shared-pvc-storage
+
+  values:
+    servingEngineSpec:
+      enableEngine: true
+      imagePullPolicy: IfNotPresent
+      runtimeClassName: nvidia
+      strategy:
+        type: Recreate
+      labels:
+        environment: homelab
+        release: vllm
+      vllmApiKey:
+        secretName: vllm-api-key
+        secretKey: api-key
+      modelSpec:
+        - name: qwen36-35b-a3b-nvfp4
+          enabled: true
+          runtimeClassName: nvidia
+          repository: vllm/vllm-openai
+          tag: nightly@sha256:4cebac8c03f2cd9f5fabe72ac7c2a0b3aaa8450ef8f0e47429425fd1bfb83d42
+          modelURL: nvidia/Qwen3.6-35B-A3B-NVFP4
+          replicaCount: 1
+          extraVolumes:
+            - name: vllm-shared-pvc-storage
+              persistentVolumeClaim:
+                claimName: vllm-model-cache-claim
+          extraVolumeMounts:
+            - name: vllm-shared-pvc-storage
+              mountPath: /data/shared-pvc-storage
+          resources:
+            requests:
+              cpu: "4"
+              memory: 24Gi
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "12"
+              memory: 48Gi
+              nvidia.com/gpu: "1"
+          shmSize: 8Gi
+          enableLoRA: false
+          enableTool: true
+          toolCallParser: qwen3_coder
+          vllmConfig:
+            enablePrefixCaching: true
+            enableChunkedPrefill: true
+            maxModelLen: 32768
+            dtype: auto
+            tensorParallelSize: 1
+            maxNumSeqs: 2
+            gpuMemoryUtilization: 0.90
+            extraArgs:
+              - --quantization
+              - modelopt
+              - --kv-cache-dtype
+              - fp8
+              - --reasoning-parser
+              - qwen3
+              - --language-model-only
+              - --max-num-batched-tokens
+              - "8192"
+          keda:
+            enabled: false
+
+      startupProbe:
+        initialDelaySeconds: 10
+        periodSeconds: 10
+        failureThreshold: 180
+        httpGet:
+          path: /health
+          port: 8000
+
+      serviceMonitor:
+        enabled: true
+        interval: 30s
+        scrapeTimeout: 10s
+
+    routerSpec:
+      enableRouter: true
+      repository: lmcache/lmstack-router
+      tag: v0.1.11
+      imagePullPolicy: IfNotPresent
+      replicaCount: 1
+      serviceType: ClusterIP
+      serviceDiscovery: k8s
+      k8sServiceDiscoveryType: pod-ip
+      routingLogic: roundrobin
+      vllmApiKey:
+        secretName: vllm-api-key
+        secretKey: api-key
+      autoscaling:
+        enabled: false
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: "1"
+          memory: 1Gi
+      route:
+        main:
+          enabled: true
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          hostnames:
+            - vllm.${SECRET_DOMAIN}
+          parentRefs:
+            - name: internal
+              namespace: kube-system
+              sectionName: https
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
+      serviceMonitor:
+        enabled: true
+        interval: 30s
+        scrapeTimeout: 10s
+
+    cacheserverSpec:
+      enabled: false
+
+    sharedPvcStorage:
+      enabled: false
+
+    loraController:
+      enableLoraController: false
+
+    grafanaDashboards:
+      enabled: false
+
+    kube-prometheus-stack:
+      enabled: false
+
+    prometheus-adapter:
+      enabled: false
