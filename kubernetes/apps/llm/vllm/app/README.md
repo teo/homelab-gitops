@@ -7,14 +7,14 @@ Production Stack Helm chart.
 
 - Namespace: `llm`
 - One internal router and one serving engine
-- One NVIDIA GPU assigned exclusively to the engine
+- One time-sliced NVIDIA GPU share assigned to the engine
 - Model: `nvidia/Qwen3.6-35B-A3B-NVFP4`
 - Cache: shared RWX model cache on `nfs-ssd`
 - Route: `https://vllm.${SECRET_DOMAIN}` through the internal Gateway
 - Monitoring: chart-managed router and engine `ServiceMonitor` resources
 
-The engine uses `Recreate` because a rolling update cannot schedule a second
-pod when only one GPU is available.
+The engine uses `Recreate` to avoid temporarily running two memory-intensive
+model servers on the same physical GPU during a rolling update.
 
 ## Required secret
 
