@@ -1,0 +1,74 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrepository-source-v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: openwebui
+  namespace: ollama
+spec:
+  interval: 1h
+  url: https://helm.openwebui.com
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openwebui
+  namespace: ollama
+  annotations:
+    fluxcd.io/redeploy: "2025-08-19T13:59:03"
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: open-webui
+      version: 14.8.0
+      sourceRef:
+        kind: HelmRepository
+        name: openwebui
+        namespace: ollama
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    ollama:
+      enabled: false
+    ollamaUrls:
+      - http://ollama.ollama.svc.cluster.local:11434
+    service:
+      type: ClusterIP
+      port: 8080
+    persistence:
+      existingClaim: openwebui-ollama-data-pvc
+    pipelines:
+      enabled: false
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 4Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: openwebui-ollama
+  namespace: ollama
+spec:
+  parentRefs:
+    - name: internal
+      namespace: kube-system
+      sectionName: https
+  hostnames:
+    - ollama.${SECRET_DOMAIN}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: openwebui-open-webui
+          port: 8080
