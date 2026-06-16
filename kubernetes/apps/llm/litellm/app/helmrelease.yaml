@@ -105,14 +105,239 @@ spec:
           secretKeyRef:
             name: vllm-api-key
             key: api-key
+      - name: NVIDIA_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: nvidia-api-key
+            key: api-key
 
     proxy_config:
       model_list:
+        # ---------------------------------------------------------------------------
+        # NVIDIA Nemotron 3 family
+        # ---------------------------------------------------------------------------
+
+        - model_name: nemotron-super-nim
+          litellm_params:
+            model: nvidia_nim/nvidia/nemotron-3-super-120b-a12b
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 600
+            stream_timeout: 600
+          model_info:
+            description: "NVIDIA Nemotron 3 Super 120B-A12B; primary cloud fallback/workhorse for coding, long context, and agentic workflows."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: nemotron-ultra-nim
+          litellm_params:
+            model: nvidia_nim/nvidia/nemotron-3-ultra-550b-a55b
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "NVIDIA Nemotron 3 Ultra 550B-A55B; big cannon for hard planning, repo-scale reasoning, orchestration, and agentic coding."
+            max_input_tokens: 131072
+            max_output_tokens: 16384
+
+        - model_name: nemotron-nano-nim
+          litellm_params:
+            model: nvidia_nim/nvidia/nemotron-3-nano-30b-a3b
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 600
+            stream_timeout: 600
+          model_info:
+            description: "NVIDIA Nemotron 3 Nano 30B-A3B; cheap/fast long-context helper, lower-priority than Super/Ultra for hard coding."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: nemotron-nano-omni-nim
+          litellm_params:
+            model: nvidia_nim/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 600
+            stream_timeout: 600
+          model_info:
+            description: "NVIDIA Nemotron 3 Nano Omni; multimodal helper for screenshots, diagrams, OCR-ish tasks. Not primary coding model."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # Older/legacy NVIDIA Nemotron models still potentially useful as fallbacks
+        # ---------------------------------------------------------------------------
+
+        - model_name: llama33-nemotron-super-nim
+          litellm_params:
+            model: nvidia_nim/nvidia/llama-3.3-nemotron-super-49b-v1.5
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 600
+            stream_timeout: 600
+          model_info:
+            description: "Llama 3.3 Nemotron Super 49B v1.5; legacy/stable fallback if Nemotron 3 behaves weirdly."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: llama31-nemotron-ultra-nim
+          litellm_params:
+            model: nvidia_nim/nvidia/llama-3.1-nemotron-ultra-253b-v1
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "Llama 3.1 Nemotron Ultra 253B; older large Nemotron fallback."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: mistral-nemotron-nim
+          litellm_params:
+            model: nvidia_nim/mistralai/mistral-nemotron
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 600
+            stream_timeout: 600
+          model_info:
+            description: "Mistral-Nemotron; alternative instruction/coding-ish fallback, test quality before relying on it."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # Non-NVIDIA coding / agent models exposed through NVIDIA NIM
+        # ---------------------------------------------------------------------------
+
+        - model_name: kimi-k26-nim
+          litellm_params:
+            model: nvidia_nim/moonshotai/kimi-k2.6
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "Kimi K2.6; coding/agent specialist, good candidate for hard coding tasks and long-horizon tool use."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: deepseek-v4-flash-nim
+          litellm_params:
+            model: nvidia_nim/deepseek-ai/deepseek-v4-flash
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "DeepSeek V4 Flash; huge-context fast coding/agent fallback."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: qwen3-next-nim
+          litellm_params:
+            model: nvidia_nim/qwen/qwen3-next-80b-a3b-instruct
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 600
+            stream_timeout: 600
+          model_info:
+            description: "Qwen3 Next 80B-A3B Instruct; fast long-context non-thinking/tool-use candidate."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: glm51-nim
+          litellm_params:
+            model: nvidia_nim/z-ai/glm-5.1
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "GLM-5.1; agentic/coding/reasoning alternative, worth testing."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # Qwen 3.5 family: strong multimodal/chat/RAG/tool/agent candidates
+        # ---------------------------------------------------------------------------
+
+        - model_name: qwen35-397b-nim
+          litellm_params:
+            model: nvidia_nim/qwen/qwen3.5-397b-a17b
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "Qwen3.5 397B-A17B; large MoE VLM for chat, RAG, tool/function calling, and agentic workflows."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: qwen35-122b-nim
+          litellm_params:
+            model: nvidia_nim/qwen/qwen3.5-122b-a10b
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "Qwen3.5 122B-A10B; smaller Qwen3.5 MoE, agent-ready, likely cheaper/faster than 397B."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # Mistral Large 3: big general agentic model
+        # ---------------------------------------------------------------------------
+
+        - model_name: mistral-large3-nim
+          litellm_params:
+            model: nvidia_nim/mistralai/mistral-large-3-675b-instruct-2512
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "Mistral Large 3 675B Instruct; big MoE VLM for chat, instruction, and agentic workflows."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # MiniMax: coding/agent/document-editing candidates
+        # ---------------------------------------------------------------------------
+
+        - model_name: minimax-m3-nim
+          litellm_params:
+            model: nvidia_nim/minimaxai/minimax-m3
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "MiniMax M3; multimodal MoE with reasoning, coding, tool-calling, long-context, and long-horizon coding focus."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        - model_name: minimax-m27-nim
+          litellm_params:
+            model: nvidia_nim/minimaxai/minimax-m2.7
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "MiniMax M2.7; software engineering, agentic tool use, and document-editing candidate."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # OpenAI GPT-OSS: open-weight reasoning/tool-use candidate
+        # ---------------------------------------------------------------------------
+
+        - model_name: gpt-oss-120b-nim
+          litellm_params:
+            model: nvidia_nim/openai/gpt-oss-120b
+            api_key: os.environ/NVIDIA_API_KEY
+            timeout: 900
+            stream_timeout: 900
+          model_info:
+            description: "OpenAI GPT-OSS 120B; open-weight MoE reasoning model with tool-use and coding strengths."
+            max_input_tokens: 131072
+            max_output_tokens: 8192
+
+        # ---------------------------------------------------------------------------
+        # LOCAL INFERENCE
+        # ---------------------------------------------------------------------------
+
         - model_name: qwen36-nvfp4-local
           litellm_params:
             model: hosted_vllm/nvidia/Qwen3.6-35B-A3B-NVFP4
             api_base: http://vllm-router-service.llm.svc.cluster.local/v1
             api_key: os.environ/VLLM_API_KEY
+
       general_settings:
         master_key: os.environ/PROXY_MASTER_KEY
       litellm_settings:
