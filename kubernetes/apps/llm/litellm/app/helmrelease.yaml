@@ -59,6 +59,9 @@ spec:
       type: ClusterIP
       port: 4000
 
+    deploymentAnnotations:
+      secret.reloader.stakater.com/reload: vllm-api-key,nvidia-api-key,litellm-master-key,litellm-postgres-secret
+
     resources:
       requests:
         cpu: 250m
