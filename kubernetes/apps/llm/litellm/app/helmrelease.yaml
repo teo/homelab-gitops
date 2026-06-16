@@ -126,6 +126,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 600
             stream_timeout: 600
+            rpm: 8
           model_info:
             description: "NVIDIA Nemotron 3 Super 120B-A12B; primary cloud fallback/workhorse for coding, long context, and agentic workflows."
             max_input_tokens: 131072
@@ -137,6 +138,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 4
           model_info:
             description: "NVIDIA Nemotron 3 Ultra 550B-A55B; big cannon for hard planning, repo-scale reasoning, orchestration, and agentic coding."
             max_input_tokens: 131072
@@ -148,6 +150,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 600
             stream_timeout: 600
+            rpm: 15
           model_info:
             description: "NVIDIA Nemotron 3 Nano 30B-A3B; cheap/fast long-context helper, lower-priority than Super/Ultra for hard coding."
             max_input_tokens: 131072
@@ -159,6 +162,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 600
             stream_timeout: 600
+            rpm: 8
           model_info:
             description: "NVIDIA Nemotron 3 Nano Omni; multimodal helper for screenshots, diagrams, OCR-ish tasks. Not primary coding model."
             max_input_tokens: 131072
@@ -174,6 +178,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 600
             stream_timeout: 600
+            rpm: 10
           model_info:
             description: "Llama 3.3 Nemotron Super 49B v1.5; legacy/stable fallback if Nemotron 3 behaves weirdly."
             max_input_tokens: 131072
@@ -185,6 +190,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 5
           model_info:
             description: "Llama 3.1 Nemotron Ultra 253B; older large Nemotron fallback."
             max_input_tokens: 131072
@@ -196,6 +202,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 600
             stream_timeout: 600
+            rpm: 10
           model_info:
             description: "Mistral-Nemotron; alternative instruction/coding-ish fallback, test quality before relying on it."
             max_input_tokens: 131072
@@ -211,6 +218,8 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 3
+            tpm: 60000
           model_info:
             description: "Kimi K2.6; coding/agent specialist, good candidate for hard coding tasks and long-horizon tool use."
             max_input_tokens: 131072
@@ -222,6 +231,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 10
           model_info:
             description: "DeepSeek V4 Flash; huge-context fast coding/agent fallback."
             max_input_tokens: 131072
@@ -233,6 +243,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 600
             stream_timeout: 600
+            rpm: 10
           model_info:
             description: "Qwen3 Next 80B-A3B Instruct; fast long-context non-thinking/tool-use candidate."
             max_input_tokens: 131072
@@ -244,6 +255,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 8
           model_info:
             description: "GLM-5.1; agentic/coding/reasoning alternative, worth testing."
             max_input_tokens: 131072
@@ -259,6 +271,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 5
           model_info:
             description: "Qwen3.5 397B-A17B; large MoE VLM for chat, RAG, tool/function calling, and agentic workflows."
             max_input_tokens: 131072
@@ -270,6 +283,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 8
           model_info:
             description: "Qwen3.5 122B-A10B; smaller Qwen3.5 MoE, agent-ready, likely cheaper/faster than 397B."
             max_input_tokens: 131072
@@ -285,6 +299,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 4
           model_info:
             description: "Mistral Large 3 675B Instruct; big MoE VLM for chat, instruction, and agentic workflows."
             max_input_tokens: 131072
@@ -300,6 +315,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 8
           model_info:
             description: "MiniMax M3; multimodal MoE with reasoning, coding, tool-calling, long-context, and long-horizon coding focus."
             max_input_tokens: 131072
@@ -311,6 +327,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 8
           model_info:
             description: "MiniMax M2.7; software engineering, agentic tool use, and document-editing candidate."
             max_input_tokens: 131072
@@ -326,6 +343,7 @@ spec:
             api_key: os.environ/NVIDIA_API_KEY
             timeout: 900
             stream_timeout: 900
+            rpm: 8
           model_info:
             description: "OpenAI GPT-OSS 120B; open-weight MoE reasoning model with tool-use and coding strengths."
             max_input_tokens: 131072
@@ -343,6 +361,26 @@ spec:
 
       general_settings:
         master_key: os.environ/PROXY_MASTER_KEY
+        # Per-deployment parallelism. This is not a harsh rate limit;
+        # it mostly prevents overlapping calls to the same upstream deployment.
+        max_parallel_requests: 1
+
+      router_settings:
+        routing_strategy: simple-shuffle
+        enable_pre_call_checks: true
+        optional_pre_call_checks:
+          - enforce_model_rate_limits
+
+        # Do not waste retries hammering the same NIM model after provider-side 429.
+        retry_policy:
+          RateLimitErrorRetries: 0
+          TimeoutErrorRetries: 1
+          InternalServerErrorRetries: 1
+
+        # Cool down models that are failing, but do not overreact to a single hiccup.
+        allowed_fails: 2
+        cooldown_time: 60
+
       litellm_settings:
         callbacks:
           - prometheus
