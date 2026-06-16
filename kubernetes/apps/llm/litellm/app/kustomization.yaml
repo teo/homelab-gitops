@@ -5,7 +5,6 @@ kind: Kustomization
 namespace: llm
 resources:
   - ./db.yaml
-  - ./gatus.yaml
   - ./grafanadashboard.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml

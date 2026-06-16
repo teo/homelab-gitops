@@ -12,11 +12,14 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
+  components:
+    - ../../../../components/gatus/guarded
   interval: 1h
   path: ./kubernetes/apps/ollama/ollama/app
   postBuild:
     substitute:
       APP: *app
+      GATUS_SUBDOMAIN: ollama-api
     substituteFrom:
       - kind: Secret
         name: cluster-secrets
