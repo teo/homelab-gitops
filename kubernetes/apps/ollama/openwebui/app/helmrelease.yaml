@@ -38,6 +38,10 @@ spec:
       enabled: false
     ollamaUrls:
       - http://ollama.ollama.svc.cluster.local:11434
+    enableOpenaiApi: true
+    openaiBaseApiUrl: http://litellm.llm.svc.cluster.local:4000/v1
+    openaiApiKeyExistingSecret: openwebui-litellm-api-key
+    openaiApiKeyExistingSecretKey: api-key
     service:
       type: ClusterIP
       port: 8080

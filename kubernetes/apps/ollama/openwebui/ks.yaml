@@ -9,6 +9,10 @@ spec:
   dependsOn:
     - name: openwebui-config
       namespace: ollama
+    - name: ollama
+      namespace: ollama
+    - name: litellm
+      namespace: llm
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
