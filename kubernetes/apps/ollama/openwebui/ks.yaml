@@ -27,6 +27,8 @@ spec:
     substituteFrom:
       - kind: Secret
         name: cluster-secrets
+      - kind: Secret
+        name: openwebui-cluster-vars
   prune: true
   retryInterval: 2m
   sourceRef:

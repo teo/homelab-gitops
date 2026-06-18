@@ -41,7 +41,7 @@ spec:
     enableOpenaiApi: true
     openaiBaseApiUrls:
       - http://litellm.llm.svc.cluster.local:4000/v1
-      - https://openclaw.${SECRET_DOMAIN}/v1
+      - ${OPENCLAW_OPENAI_BASE_URL}
     openaiApiKeysExistingSecret: openwebui-openai-api-keys
     openaiApiKeysExistingSecretKey: api-keys
     service:
