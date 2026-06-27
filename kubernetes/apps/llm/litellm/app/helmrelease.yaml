@@ -43,6 +43,17 @@ spec:
               metadata:
                 name: litellm-test-servicemonitor
               $patch: delete
+          - target:
+              kind: ServiceMonitor
+              name: litellm
+            patch: |
+              - op: add
+                path: /spec/endpoints/0/authorization
+                value:
+                  type: Bearer
+                  credentials:
+                    name: litellm-master-key
+                    key: masterkey
   values:
     replicaCount: 1
     fullnameOverride: litellm
