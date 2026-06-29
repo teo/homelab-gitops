@@ -33,7 +33,7 @@ Typical update targets:
 - container image tags/digests in Helm values
 - GitHub Actions (if enabled)
 
-See renovate.json in the repository root.
+See .renovaterc.json5 in the repository root.
 
 ## Conventions
 
