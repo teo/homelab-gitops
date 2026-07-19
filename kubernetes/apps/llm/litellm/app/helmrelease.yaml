@@ -61,7 +61,7 @@ spec:
     image:
       repository: ghcr.io/berriai/litellm-database
       pullPolicy: IfNotPresent
-      tag: v1.92.0
+      tag: v1.93.0
 
     masterkeySecretName: litellm-master-key
     masterkeySecretKey: masterkey
