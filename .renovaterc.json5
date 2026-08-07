@@ -189,5 +189,15 @@
       ],
       datasourceTemplate: "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}",
     },
+    {
+      description: "Process Crossplane Helm releases",
+      customType: "regex",
+      managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"],
+      matchStrings: [
+        "apiVersion:\\s+helm(?:\\.m)?\\.crossplane\\.io/v1beta1\\s+kind:\\s+Release[\\s\\S]*?chart:\\s+repository:\\s+[\"']?(?<registryUrl>[^\\s\"']+)[\"']?\\s+name:\\s+[\"']?(?<depName>[^\\s\"']+)[\"']?\\s+version:\\s+[\"']?(?<currentValue>[^\\s\"']+)[\"']?",
+      ],
+      datasourceTemplate: "helm",
+      versioningTemplate: "helm",
+    },
   ],
 }
